@@ -33,7 +33,9 @@ class TitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = ('id', 'name', 'year', 'description',
+                  'genre', 'category', 'rating')
+        read_only_fields = ('id',)
 
     def validate_year(self, value):
         year = datetime.date.today().year
@@ -51,4 +53,5 @@ class TitleReadOnlySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = ('id', 'name', 'year', 'description',
+                  'genre', 'category', 'rating')
