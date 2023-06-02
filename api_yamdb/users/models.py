@@ -19,6 +19,7 @@ class User(AbstractUser):
         unique=True,
         validators=[RegexValidator(regex=r'^[\w.@+-]+\z')],
     )
+    password = None
     email = models.EmailField(
         verbose_name='Адрес электронной почты',
         max_length=254,
@@ -33,26 +34,20 @@ class User(AbstractUser):
         verbose_name='Биография',
         blank=True,
     )
-    first_name = models.CharField(
-        verbose_name='Имя',
-        max_length=150,
-        blank=True,
-    )
-    last_name = models.CharField(
-        verbose_name='Фамилия',
-        max_length=150,
-        blank=True,
-    )
+
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['username', 'email']
 
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
         ordering = ['username']
 
+
     def __str__(self):
         return self.username
 
-    def is_moderator(self):
+    def has_moderator_access(self):
         '''Возвращает True, если права доступа не ниже модератора.'''
         return self.role >= self.MODERATOR
 
