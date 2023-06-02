@@ -4,27 +4,29 @@ from django.db import models
 
 class User(AbstractUser):
     '''Класс пользователя.'''
-    USER = 1
-    MODERATOR = 2
-    ADMIN = 3
-    ROLES = [
-        (USER, 'user'),
-        (MODERATOR, 'moderator'),
-        (ADMIN, 'admin'),
-    ]
+
+    class Roles(models.IntegerChoices):
+        USER = 1, 'user'
+        MODERATOR = 2, 'moderator'
+        ADMIN = 3, 'admin'
+
     email = models.EmailField(
         verbose_name='Адрес электронной почты',
         max_length=254,
-        unique=True,
+        unique=True
     )
     role = models.IntegerField(
         verbose_name='Права доступа',
-        choices=ROLES,
-        default=USER,
+        choices=Roles.choices,
+        default=Roles.USER
     )
     bio = models.TextField(
         verbose_name='Биография',
-        blank=True,
+        blank=True
+    )
+    is_moderator = models.BooleanField(
+        verbose_name='Пользователь является модератором',
+        default=False
     )
 
     class Meta:
@@ -36,13 +38,6 @@ class User(AbstractUser):
         return self.username
 
     def save(self, *args, **kwargs):
-        self.is_staff = (self.role == self.ADMIN)
+        self.is_moderator = (self.role == self.Roles.MODERATOR)
+        self.is_staff = (self.role == self.Roles.ADMIN)
         super().save(*args, **kwargs)
-
-    def has_moderator_access(self):
-        '''Возвращает True, если права доступа не ниже модератора.'''
-        return self.role >= self.MODERATOR
-
-    def is_admin(self):
-        '''Возвращает True, если права доступа соответствуют администратору.'''
-        return self.role == self.ADMIN
