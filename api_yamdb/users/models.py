@@ -12,7 +12,6 @@ class User(AbstractUser):
         (MODERATOR, 'moderator'),
         (ADMIN, 'admin'),
     ]
-    password = None
     email = models.EmailField(
         verbose_name='Адрес электронной почты',
         max_length=254,
