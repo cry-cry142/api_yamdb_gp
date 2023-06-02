@@ -13,12 +13,6 @@ class User(AbstractUser):
         (MODERATOR, 'moderator'),
         (ADMIN, 'admin'),
     ]
-    username = models.CharField(
-        verbose_name='Имя пользователя',
-        max_length=150,
-        unique=True,
-        validators=[RegexValidator(regex=r'^[\w.@+-]+\z')],
-    )
     password = None
     email = models.EmailField(
         verbose_name='Адрес электронной почты',
@@ -34,9 +28,6 @@ class User(AbstractUser):
         verbose_name='Биография',
         blank=True,
     )
-
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['username', 'email']
 
     class Meta:
         verbose_name = 'Пользователь'
