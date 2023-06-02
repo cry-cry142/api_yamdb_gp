@@ -1,5 +1,4 @@
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import RegexValidator
 from django.db import models
 
 
@@ -36,6 +35,10 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+    def save(self, *args, **kwargs):
+        self.is_staff = (self.role == self.ADMIN)
+        super().save(*args, **kwargs)
 
     def has_moderator_access(self):
         '''Возвращает True, если права доступа не ниже модератора.'''
