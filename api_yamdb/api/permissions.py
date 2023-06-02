@@ -28,8 +28,8 @@ class IsResponsibleUserOrReadOnly(permissions.BasePermission):
                 and request.user
                 and (
                     obj.author == request.user
-                    or request.user.is_staff
                     or request.user.is_moderator
+                    or request.user.is_staff
                 )
             )
         )
