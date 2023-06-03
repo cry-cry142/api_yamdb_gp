@@ -58,6 +58,14 @@ class CurrentUserViewSet(
     serializer_class = UserSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
+    def update(self, request):
+        if request.data.get('role'):
+            return Response(
+                {'role': 'Запрещено задавать себе права доступа.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        super().update(request)
+
 
 class AdminManagmentViewSet(viewsets.ModelViewSet):
 
