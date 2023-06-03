@@ -28,7 +28,7 @@ class TitleSerializer(serializers.ModelSerializer):
         queryset=Genre.objects.all(),
         many=True
     )
-    rating = serializers.IntegerField(read_only=True)
+    rating = serializers.SerializerMethodField()
     description = serializers.CharField(required=False)
 
     class Meta:
@@ -49,7 +49,7 @@ class TitleSerializer(serializers.ModelSerializer):
 class TitleReadOnlySerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(read_only=True, many=True)
-    rating = serializers.IntegerField(read_only=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
