@@ -1,18 +1,22 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, status
+from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
 from .models import User
-from .serializers import SignUpSerializer, RecieveTokenSerializer
+from .serializers import (
+    SignUpSerializer,
+    RecieveTokenSerializer,
+    UserSerializer
+)
 
 
 @api_view(['POST'])
 @permission_classes((permissions.AllowAny,))
-def signup(request):
+def sign_up(request):
     serializer = SignUpSerializer(data=request.data)
     if serializer.is_valid():
         user = User.objects.create(**serializer.validated_data)
@@ -29,7 +33,7 @@ def signup(request):
 
 @api_view(['POST'])
 @permission_classes((permissions.AllowAny,))
-def send_token(request):
+def recieve_token(request):
     serializer = RecieveTokenSerializer(data=request.data)
     if serializer.is_valid():
         username = serializer.validated_data['username']
@@ -43,3 +47,20 @@ def send_token(request):
             status=status.HTTP_400_BAD_REQUEST
         )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CurrentUserViewSet(
+    mixins.RetriveModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet
+):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+
+class AdminManagmentViewSet(viewsets.ModelViewSet):
+
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (permissions.IsAdminUser,)
