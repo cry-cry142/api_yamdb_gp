@@ -69,7 +69,7 @@ class Review(models.Model):
     )
     text = models.TextField()
     author = models.ForeignKey(
-        'User',
+        User,
         on_delete=models.CASCADE,
         related_name='reviews'
     )
@@ -104,7 +104,7 @@ class Comment(models.Model):
     )
     text = models.TextField()
     author = models.ForeignKey(
-        'User',
+        User,
         on_delete=models.CASCADE,
         related_name='comments'
     )
