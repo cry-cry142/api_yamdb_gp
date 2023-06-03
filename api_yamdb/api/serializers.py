@@ -1,12 +1,8 @@
-from django.contrib.auth import get_user_model
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
-
-from reviews.models import Review, Comment
-
-User = get_user_model()
+from reviews.models import Review, Comment, User
 
 
 class SignUpSerializer(serializers.ModelSerializer):
