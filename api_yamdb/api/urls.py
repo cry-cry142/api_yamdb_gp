@@ -12,5 +12,5 @@ router.register(r'titles/(?P<title_id>[\d]+)/reviews/(?P<review_id>[\d]+)',
                 CommentViewSet, basename='comments')
 
 urlpatterns = [
-    path('', include(router.urls))
+    path('v1/', include(router.urls))
 ]
