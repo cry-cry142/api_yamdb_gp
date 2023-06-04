@@ -112,7 +112,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
 
-# Custom Yamdb settings
+# Yamdb settings
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -134,6 +134,3 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=60),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
-
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
