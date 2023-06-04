@@ -1,8 +1,5 @@
 from rest_framework import permissions
 
-ADD_METHODS = ('POST',)
-EDIT_METHODS = ('PUT', 'PATCH', 'DELETE')
-
 
 class IsAdminOrReadOnly(permissions.BasePermission):
 
