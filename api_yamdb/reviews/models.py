@@ -61,15 +61,40 @@ class Title(models.Model):
         return self.name
 
 
+class GenreTitle(models.Model):
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+        verbose_name='Название произведения'
+    )
+    genre = models.ForeignKey(
+        Genre,
+        on_delete=models.CASCADE,
+        verbose_name='Жанр'
+    )
+
+    class Meta:
+        verbose_name = 'Произведение и жанр'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'genre'],
+                name='unique_genre_title'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.title}, {self.genre}'
+
+
 class Review(models.Model):
     title = models.ForeignKey(
-        'Title',
+        Title,
         on_delete=models.CASCADE,
         related_name='reviews'
     )
     text = models.TextField()
     author = models.ForeignKey(
-        'User',
+        User,
         on_delete=models.CASCADE,
         related_name='reviews'
     )
@@ -98,13 +123,13 @@ class Review(models.Model):
 
 class Comment(models.Model):
     review = models.ForeignKey(
-        'Review',
+        Review,
         on_delete=models.CASCADE,
         related_name='comments'
     )
     text = models.TextField()
     author = models.ForeignKey(
-        'User',
+        User,
         on_delete=models.CASCADE,
         related_name='comments'
     )
