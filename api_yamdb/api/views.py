@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
-from .models import User
+from reviews.models import User
 from .serializers import (
     SignUpSerializer,
     RecieveTokenSerializer,
@@ -24,6 +24,7 @@ def sign_up(request):
         send_mail(
             subject='Регистрация на сервисе Yamdb прошла успешно!',
             message=f'Ваш код подтверждения: {confirmation_code}',
+            from_email='Yamdb@yandex.ru',
             recipient_list=[user.email],
             fail_silently=False
         )
@@ -41,7 +42,7 @@ def recieve_token(request):
         user = get_object_or_404(User, username=username)
         if default_token_generator.check_token(user, confirmation_code):
             token = AccessToken.for_user(user)
-            return Response({'token': token}, status=status.HTTP_200_OK)
+            return Response({'token': str(token)}, status=status.HTTP_200_OK)
         return Response(
             {'confirmation_code': 'Некорректный код подтверждения.'},
             status=status.HTTP_400_BAD_REQUEST
@@ -50,7 +51,7 @@ def recieve_token(request):
 
 
 class CurrentUserViewSet(
-    mixins.RetriveModelMixin,
+    mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet
 ):
