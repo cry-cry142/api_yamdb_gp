@@ -1,7 +1,7 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import mixins, permissions, status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
@@ -22,8 +22,11 @@ def sign_up(request):
         user = User.objects.create(**serializer.validated_data)
         confirmation_code = default_token_generator.make_token(user)
         send_mail(
-            subject='Регистрация на сервисе Yamdb прошла успешно!',
-            message=f'Ваш код подтверждения: {confirmation_code}',
+            subject='Yamdb registration success.',
+            message=(
+                f'Регистрация пользователя {user.username} прошла успешно.\n'
+                f'Код подтверждения: {confirmation_code}'
+            ),
             from_email='Yamdb@yandex.ru',
             recipient_list=[user.email],
             fail_silently=False
@@ -50,26 +53,16 @@ def recieve_token(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CurrentUserViewSet(
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    viewsets.GenericViewSet
-):
+class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (permissions.IsAuthenticated,)
 
-    def update(self, request):
-        if request.data.get('role'):
-            return Response(
-                {'role': 'Запрещено задавать себе права доступа.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        super().update(request)
+    def get_permissions(self):
+        if self.kwargs.get('slug') == 'me':
+            return (permissions.IsAuthenticated(),)
+        return (permissions.IsAdminUser(),)
 
-
-class AdminManagmentViewSet(viewsets.ModelViewSet):
-
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = (permissions.IsAdminUser,)
+    def get_object(self):
+        if self.kwargs.get('slug') == 'me':
+            self.kwargs['pk'] = self.request.user.pk
+        return super(UserViewSet, self).get_object()
