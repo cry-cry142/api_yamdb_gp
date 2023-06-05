@@ -104,7 +104,7 @@ class TitleSerializer(serializers.ModelSerializer):
         if year < value:
             raise serializers.ValidationError(
                 "Год выпуска не может быть больше текущего"
-                )
+            )
         return value
 
 
