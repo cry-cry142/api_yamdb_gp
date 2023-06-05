@@ -104,7 +104,7 @@ class TitleSerializer(serializers.ModelSerializer):
         if year < value:
             raise serializers.ValidationError(
                 "Год выпуска не может быть больше текущего"
-                )
+            )
         return value
 
 
@@ -151,4 +151,3 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'author', 'pub_date')
         read_only_fields = ('id', 'pub_date')
         model = Comment
-
