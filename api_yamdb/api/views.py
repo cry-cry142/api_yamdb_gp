@@ -1,9 +1,8 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.viewsets import ModelViewSet
-# from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from reviews.models import Title, Review
+from .permissions import IsResponsibleUserOrReadOnly
 from .serializers import ReviewSerializer, CommentSerializer
 
 
@@ -12,10 +11,7 @@ class ReviewViewSet(ModelViewSet):
         'get', 'post', 'patch', 'delete', 'head', 'options', 'trace'
     ]
     serializer_class = ReviewSerializer
-    # pagination_class = LimitOffsetPagination
-
-    # Необходимо поменять пермишен.
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsResponsibleUserOrReadOnly,)
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
@@ -37,10 +33,7 @@ class CommentViewSet(ModelViewSet):
         'get', 'post', 'patch', 'delete', 'head', 'options', 'trace'
     ]
     serializer_class = CommentSerializer
-    # pagination_class = LimitOffsetPagination
-
-    # Необходимо поменять пермишен.
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsResponsibleUserOrReadOnly,)
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
