@@ -131,7 +131,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def validate_author(self, value):
         user = User.objects.get(username=value)
-        if Review.objects.select_related('author').exists(
+        if Review.objects.select_related('author', 'title').exists(
             title=self.context['view'].kwargs['title_id'],
             author=user
         ):
