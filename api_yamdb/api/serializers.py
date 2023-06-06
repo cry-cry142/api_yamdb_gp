@@ -3,7 +3,7 @@ import datetime
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
+from rest_framework.validators import UniqueValidator
 from reviews.models import Review, Comment, User, Category, Genre, Title
 
 
@@ -134,11 +134,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         if Review.objects.filter(title=self.context['view'].kwargs['title_id'],
                                  author=user):
             raise ValidationError('Вы уже оставляли отзыв.')
-        return value
-
-    def validate_score(self, value):
-        if not 1 <= value <= 10:
-            raise ValidationError({'score': 'Нет такой оценки.'})
         return value
 
 
