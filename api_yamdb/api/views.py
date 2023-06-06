@@ -66,3 +66,11 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.kwargs.get('slug') == 'me':
             self.kwargs['pk'] = self.request.user.pk
         return super(UserViewSet, self).get_object()
+
+    def update(self, request, slug):
+        if self.kwargs.get('slug') == 'me' and self.request.data.get('role'):
+            return Response(
+                {'role': 'Запрещено устанавливать себе права доступа.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().update(request)

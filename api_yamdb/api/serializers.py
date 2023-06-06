@@ -61,20 +61,12 @@ class UserSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(max_length=150, required=False)
     last_name = serializers.CharField(max_length=150, required=False)
     bio = serializers.CharField(required=False)
-    role = ChoiceField(
-        choices=User.Roles.choices,
-        default=User.Roles.USER
-    )
+    role = ChoiceField(choices=User.Roles.choices, required=False)
 
     class Meta:
         model = User
         fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role'
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
         )
 
 
