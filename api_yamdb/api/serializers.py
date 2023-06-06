@@ -131,8 +131,10 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def validate_author(self, value):
         user = User.objects.get(username=value)
-        if Review.objects.filter(title=self.context['view'].kwargs['title_id'],
-                                 author=user):
+        if Review.objects.select_related('author').exists(
+            title=self.context['view'].kwargs['title_id'],
+            author=user
+        ):
             raise ValidationError('Вы уже оставляли отзыв.')
         return value
 
