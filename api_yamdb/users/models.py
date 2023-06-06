@@ -3,7 +3,6 @@ from django.db import models
 
 
 class User(AbstractUser):
-    '''Класс пользователя.'''
 
     class Roles(models.IntegerChoices):
         USER = 1, 'user'
