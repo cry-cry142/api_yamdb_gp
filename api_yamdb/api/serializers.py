@@ -129,12 +129,12 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'pub_date')
         model = Review
 
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=('title', 'author')
-            )
-        ]
+    def validate_author(self, value):
+        user = User.objects.get(username=value)
+        if Review.objects.filter(title=self.context['view'].kwargs['title_id'],
+                                 author=user):
+            raise ValidationError('Вы уже оставляли отзыв.')
+        return value
 
     def validate_score(self, value):
         if not 1 <= value <= 10:
