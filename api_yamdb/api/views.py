@@ -63,6 +63,7 @@ def recieve_token(request):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    lookup_field = 'username'
 
     def get_permissions(self):
         if self.kwargs.get('slug') == 'me':
