@@ -21,10 +21,10 @@ router.register(r'titles/(?P<title_id>[\d]+)/'
 router.register('users', UserViewSet, basename='user')
 
 urlpatterns = [
-    path('v1/auth/signup', sign_up, name='sign_up'),
-    path('v1/auth/token', recieve_token, name='recieve_token'),
+    path('v1/auth/signup/', sign_up, name='sign_up'),
+    path('v1/auth/token/', recieve_token, name='recieve_token'),
     path(
-        'v1/users/me',
+        'v1/users/me/',
         UserViewSet.as_view({'get': 'retrieve', 'patch': 'update'}),
         kwargs={'slug': 'me'}
     ),

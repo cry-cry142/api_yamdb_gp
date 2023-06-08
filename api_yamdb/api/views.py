@@ -1,6 +1,7 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
+from django.db.utils import IntegrityError
 from django_filters.rest_framework import (
     DjangoFilterBackend, CharFilter, FilterSet
 )
@@ -17,8 +18,7 @@ from .permissions import IsAdminOrReadOnly, IsResponsibleUserOrReadOnly
 from .serializers import (
     SignUpSerializer, RecieveTokenSerializer, UserSerializer,
     CategorySerializer, GenreSerializer, TitleSerializer,
-    TitleReadOnlySerializer, CategorySerializer, GenreSerializer,
-    ReviewSerializer, CommentSerializer
+    TitleReadOnlySerializer, ReviewSerializer, CommentSerializer
 )
 
 
@@ -27,7 +27,13 @@ from .serializers import (
 def sign_up(request):
     serializer = SignUpSerializer(data=request.data)
     if serializer.is_valid():
-        user = User.objects.create(**serializer.validated_data)
+        try:
+            user, _ = User.objects.get_or_create(**serializer.validated_data)
+        except IntegrityError as error:
+            return Response(
+                {'error': str(error)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         confirmation_code = default_token_generator.make_token(user)
         send_mail(
             subject='Yamdb registration success.',
@@ -62,9 +68,13 @@ def recieve_token(request):
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    http_method_names = [
+        'get', 'post', 'patch', 'delete', 'head', 'options', 'trace'
+    ]
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    lookup_field = 'username'
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
 
     def get_permissions(self):
         if self.kwargs.get('slug') == 'me':
@@ -76,13 +86,22 @@ class UserViewSet(viewsets.ModelViewSet):
             self.kwargs['pk'] = self.request.user.pk
         return super(UserViewSet, self).get_object()
 
-    def update(self, request, slug):
-        if self.kwargs.get('slug') == 'me' and self.request.data.get('role'):
-            return Response(
-                {'role': 'Запрещено устанавливать себе права доступа.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        return super().update(request)
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        if self.kwargs.get('slug') == 'me':
+            if self.request.data.get('username'):
+                return Response(
+                    {'role': 'Запрещено изменять имя пользователя.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if self.request.data.get('role'):
+                return Response(
+                    {'role': 'Запрещено устанавливать себе права доступа.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        return super().update(request, *args, **kwargs)
 
 
 class CreateListDestroyViewSet(
