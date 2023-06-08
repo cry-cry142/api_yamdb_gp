@@ -3,6 +3,7 @@ import datetime
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework.validators import UniqueValidator
 from reviews.models import Review, Comment, User, Category, Genre, Title
 
 
@@ -40,7 +41,8 @@ class UserSerializer(serializers.ModelSerializer):
         max_length=150,
         validators=[UnicodeUsernameValidator()],
     )
-    email = serializers.EmailField(max_length=254)
+    email = serializers.EmailField(max_length=254,
+        validators=[UniqueValidator(queryset=User.objects.all())])
     first_name = serializers.CharField(max_length=150, required=False)
     last_name = serializers.CharField(max_length=150, required=False)
     bio = serializers.CharField(required=False)
@@ -53,6 +55,13 @@ class UserSerializer(serializers.ModelSerializer):
         )
         lookup_field = 'username'
         extra_kwargs = {'url': {'lookup_field': 'username'}}
+
+    def validate_username(self, value):
+        if self.context['request'].method == 'POST' and User.objects.filter(username=value):
+            raise serializers.ValidationError(
+                {'username': 'Данное имя пользователя уже используется.'}
+            )
+        return value
 
 
 class CategorySerializer(serializers.ModelSerializer):

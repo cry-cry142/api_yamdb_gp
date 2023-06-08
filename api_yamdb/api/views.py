@@ -75,6 +75,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
+    lookup_field = 'username'
 
     def get_permissions(self):
         if self.kwargs.get('slug') == 'me':
@@ -86,8 +87,6 @@ class UserViewSet(viewsets.ModelViewSet):
             self.kwargs['pk'] = self.request.user.pk
         return super(UserViewSet, self).get_object()
 
-    def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
         if self.kwargs.get('slug') == 'me':

@@ -146,8 +146,3 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=60),
     'AUTH_HEADER_TYPES': ('Bearer',)
 }
-
-
-# Pytest requirements
-
-APPEND_SLASH = False
