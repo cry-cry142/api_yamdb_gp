@@ -41,8 +41,10 @@ class UserSerializer(serializers.ModelSerializer):
         max_length=150,
         validators=[UnicodeUsernameValidator()],
     )
-    email = serializers.EmailField(max_length=254,
-        validators=[UniqueValidator(queryset=User.objects.all())])
+    email = serializers.EmailField(
+        max_length=254,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
     first_name = serializers.CharField(max_length=150, required=False)
     last_name = serializers.CharField(max_length=150, required=False)
     bio = serializers.CharField(required=False)
@@ -57,7 +59,10 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'url': {'lookup_field': 'username'}}
 
     def validate_username(self, value):
-        if self.context['request'].method == 'POST' and User.objects.filter(username=value):
+        if (
+            self.context['request'].method == 'POST'
+            and User.objects.filter(username=value)
+        ):
             raise serializers.ValidationError(
                 {'username': 'Данное имя пользователя уже используется.'}
             )

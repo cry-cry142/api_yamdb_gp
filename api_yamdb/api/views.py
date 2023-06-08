@@ -76,7 +76,6 @@ class UserViewSet(viewsets.ModelViewSet):
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
-   
 
     def get_permissions(self):
         if self.kwargs.get('username') == 'me':
@@ -90,7 +89,10 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         if self.kwargs['username'] == 'me':
-            if self.request.data.get('username') not in (self.request.user.username, None):
+            if self.request.data.get('username') not in (
+                self.request.user.username,
+                None
+            ):
                 return Response(
                     {'username': 'Запрещено изменять имя пользователя.'},
                     status=status.HTTP_400_BAD_REQUEST
@@ -100,11 +102,9 @@ class UserViewSet(viewsets.ModelViewSet):
                     {'role': 'Запрещено устанавливать себе права доступа.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)
+        kwargs['partial'] = True
+        return super().update(request, *args, **kwargs)
+
 
 class CreateListDestroyViewSet(
         mixins.CreateModelMixin,
