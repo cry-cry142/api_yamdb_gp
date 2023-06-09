@@ -56,3 +56,4 @@ class Command(BaseCommand):
                 review=Review.objects.get(pk=row['review_id']),
             )
             comment.save()
+        self.stdout.write(self.style.SUCCESS("Данные загружены в базу"))
