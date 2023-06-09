@@ -4,10 +4,10 @@ from django.db import models
 
 class User(AbstractUser):
 
-    class Roles(models.IntegerChoices):
-        USER = 1, 'user'
-        MODERATOR = 2, 'moderator'
-        ADMIN = 3, 'admin'
+    class Roles(models.TextChoices):
+        USER = 'user', 'user'
+        MODERATOR = 'moderator', 'moderator'
+        ADMIN = 'admin', 'admin'
 
     email = models.EmailField(
         verbose_name='Адрес электронной почты',

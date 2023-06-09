@@ -3,20 +3,15 @@ import datetime
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework.validators import UniqueValidator
 from reviews.models import Review, Comment, User, Category, Genre, Title
 
 
 class SignUpSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(
-        max_length=254,
-        validators=[UniqueValidator(queryset=User.objects.all())]
-    )
+    email = serializers.EmailField(max_length=254)
     username = serializers.CharField(
         max_length=150,
         validators=[
             UnicodeUsernameValidator(),
-            UniqueValidator(queryset=User.objects.all())
         ]
     )
 
@@ -40,18 +35,6 @@ class RecieveTokenSerializer(serializers.Serializer):
     confirmation_code = serializers.CharField()
 
 
-class ChoiceField(serializers.ChoiceField):
-
-    def to_representation(self, obj):
-        return self._choices[obj]
-
-    def to_internal_value(self, data):
-        for key, val in self._choices.items():
-            if val == data:
-                return key
-        self.fail('invalid_choice', input=data)
-
-
 class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         max_length=150,
@@ -61,7 +44,7 @@ class UserSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(max_length=150, required=False)
     last_name = serializers.CharField(max_length=150, required=False)
     bio = serializers.CharField(required=False)
-    role = ChoiceField(choices=User.Roles.choices, required=False)
+    role = serializers.ChoiceField(choices=User.Roles.choices, required=False)
 
     class Meta:
         model = User
@@ -69,6 +52,7 @@ class UserSerializer(serializers.ModelSerializer):
             'username', 'email', 'first_name', 'last_name', 'bio', 'role'
         )
         lookup_field = 'username'
+        extra_kwargs = {'url': {'lookup_field': 'username'}}
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -133,15 +117,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'author', 'score', 'pub_date')
         read_only_fields = ('id', 'pub_date')
         model = Review
-
-    def validate_author(self, value):
-        user = User.objects.get(username=value)
-        if Review.objects.select_related('author', 'title').exists(
-            title=self.context['view'].kwargs['title_id'],
-            author=user
-        ):
-            raise ValidationError('Вы уже оставляли отзыв.')
-        return value
 
 
 class CommentSerializer(serializers.ModelSerializer):
