@@ -39,5 +39,5 @@ class User(AbstractUser):
 
     def save(self, *args, **kwargs):
         self.is_moderator = (self.role == self.Roles.MODERATOR)
-        self.is_staff = (self.role == self.Roles.ADMIN)
+        self.is_staff = (self.role == self.Roles.ADMIN) or self.is_superuser
         super().save(*args, **kwargs)

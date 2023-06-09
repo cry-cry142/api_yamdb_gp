@@ -74,27 +74,28 @@ class UserViewSet(viewsets.ModelViewSet):
     ]
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
 
     def get_permissions(self):
-        if self.kwargs.get('slug') == 'me':
+        if self.kwargs.get('username') == 'me':
             return (permissions.IsAuthenticated(),)
         return (permissions.IsAdminUser(),)
 
     def get_object(self):
-        if self.kwargs.get('slug') == 'me':
-            self.kwargs['pk'] = self.request.user.pk
+        if self.kwargs.get('username') == 'me':
+            self.kwargs['username'] = self.request.user.username
         return super(UserViewSet, self).get_object()
 
-    def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
-
     def update(self, request, *args, **kwargs):
-        if self.kwargs.get('slug') == 'me':
-            if self.request.data.get('username'):
+        if self.kwargs['username'] == 'me':
+            if self.request.data.get('username') not in (
+                self.request.user.username,
+                None
+            ):
                 return Response(
-                    {'role': 'Запрещено изменять имя пользователя.'},
+                    {'username': 'Запрещено изменять имя пользователя.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             if self.request.data.get('role'):
@@ -102,6 +103,7 @@ class UserViewSet(viewsets.ModelViewSet):
                     {'role': 'Запрещено устанавливать себе права доступа.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+        kwargs['partial'] = True
         return super().update(request, *args, **kwargs)
 
 
