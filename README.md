@@ -8,7 +8,7 @@ API проекта YaMDb - сервиса по сбору отзывов и оц
 
 *Клонируем репозиторий и переходим в него в командной строке:*
 
-``` git@github.com:ivnpvl/api_yamdb.git ```
+``` git clone git@github.com:ivnpvl/api_yamdb.git ```
 
 ``` cd api_yamdb ```
 
@@ -27,8 +27,6 @@ API проекта YaMDb - сервиса по сбору отзывов и оц
 ``` pip install -r requirements.txt ```
 
 *Выполняем миграции:*
-
-``` python manage.py makemigrations ```
 
 ``` python manage.py migrate ```
 
@@ -87,4 +85,4 @@ GET-запрос на этот адрес вернет:
 }
 ```
 
-Больше примеров на  ``` http://127.0.0.1:8000/redoc/ ```
+Остальная документация по API  ``` http://127.0.0.1:8000/redoc/ ```
