@@ -135,6 +135,7 @@ class Review(models.Model):
                 name='unique_title_author_review'
             ),
         ]
+        ordering = ['-pub_date']
 
     def __str__(self):
         return self.text

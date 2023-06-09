@@ -26,7 +26,7 @@ urlpatterns = [
     path(
         'v1/users/me/',
         UserViewSet.as_view({'get': 'retrieve', 'patch': 'update'}),
-        kwargs={'slug': 'me'}
+        kwargs={'username': 'me'}
     ),
     path('v1/', include(router.urls))
 ]
