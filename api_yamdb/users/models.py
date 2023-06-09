@@ -14,8 +14,9 @@ class User(AbstractUser):
         max_length=254,
         unique=True
     )
-    role = models.IntegerField(
+    role = models.CharField(
         verbose_name='Права доступа',
+        max_length=16,
         choices=Roles.choices,
         default=Roles.USER
     )
@@ -38,5 +39,5 @@ class User(AbstractUser):
 
     def save(self, *args, **kwargs):
         self.is_moderator = (self.role == self.Roles.MODERATOR)
-        self.is_staff = (self.role == self.Roles.ADMIN)
+        self.is_staff = (self.role == self.Roles.ADMIN) or self.is_superuser
         super().save(*args, **kwargs)
