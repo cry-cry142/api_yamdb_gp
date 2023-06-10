@@ -25,13 +25,17 @@ class SignUpSerializer(serializers.ModelSerializer):
         username = data['username']
         email = data['email']
         users = User.objects.filter(Q(username=username) | Q(email=email))
-        username_exists = users.filter(username=username).exists()
-        email_exists = users.filter(email=email).exists()
-        if username_exists and not email_exists:
+        only_username_exists = (
+            users.filter(username=username).exclude(email=email).exists()
+        )
+        only_email_exists = (
+            users.filter(email=email).exclude(username=username).exists()
+        )
+        if only_username_exists:
             raise ValidationError(
                 {'email': f'{username} уже зарегистрирован с другой почтой.'}
             )
-        if not username_exists and email_exists:
+        if only_email_exists:
             raise ValidationError(
                 {'email': 'Данный адрес электронной почты уже используется.'}
             )
