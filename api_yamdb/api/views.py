@@ -2,9 +2,8 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.db.utils import IntegrityError
-from django_filters.rest_framework import (
-    DjangoFilterBackend, CharFilter, FilterSet
-)
+from django_filters.rest_framework import DjangoFilterBackend
+
 from django.shortcuts import get_object_or_404
 
 from rest_framework import filters, mixins, permissions, status, viewsets
@@ -15,6 +14,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.pagination import PageNumberPagination
 
 from reviews.models import User, Genre, Title, Category, Review
+from .filters import TitleFilterSet
 from .permissions import IsAdminOrReadOnly, IsResponsibleUserOrReadOnly
 from .serializers import (
     SignUpSerializer, RecieveTokenSerializer, UserSerializer,
@@ -115,15 +115,6 @@ class CreateListDestroyViewSet(
     pass
 
 
-class TitleFilterSet(FilterSet):
-    category = CharFilter(field_name='category__slug')
-    genre = CharFilter(field_name='genre__slug')
-
-    class Meta:
-        model = Title
-        fields = ('category', 'genre', 'name', 'year')
-
-
 class CategoryViewSet(CreateListDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -145,12 +136,12 @@ class GenreViewSet(CreateListDestroyViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.annotate(
-        rating=Avg('reviews__score')).order_by("name")
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilterSet
+    ordering = ('name',)
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
