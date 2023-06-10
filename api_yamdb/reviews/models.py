@@ -120,11 +120,11 @@ class Review(models.Model):
         related_name='reviews',
         verbose_name='Автор'
     )
-    score = models.IntegerField(
+    score = models.SmallIntegerField(
         verbose_name='Оценка',
         validators=[
-            MaxValueValidator(10),
-            MinValueValidator(1)
+            MaxValueValidator(10, 'Оценка не может быть больше 10.'),
+            MinValueValidator(1, 'Оценка не может быть меньше 1.')
         ]
     )
     pub_date = models.DateTimeField(
