@@ -20,6 +20,25 @@ class SignUpSerializer(serializers.ModelSerializer):
         model = User
         fields = ('email', 'username')
 
+    def validate(self, data):
+        username = data['username']
+        email = data['email']
+        if (
+            User.objects.filter(username=username).exists()
+            and not User.objects.filter(email=email).exists()
+        ):
+            raise ValidationError(
+                {'email': f'{username} уже зарегистрирован с другой почтой.'}
+            )
+        if (
+            not User.objects.filter(username=username).exists()
+            and User.objects.filter(email=email).exists()
+        ):
+            raise ValidationError(
+                {'email': 'Данный ардрес электронной почты уже используется.'}
+            )
+        return data
+
     def validate_username(self, value):
         if value == 'me':
             raise ValidationError(
@@ -61,7 +80,7 @@ class UserSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if (
             self.context['request'].method == 'POST'
-            and User.objects.filter(username=value)
+            and User.objects.filter(username=value).exists()
         ):
             raise serializers.ValidationError(
                 {'username': 'Данное имя пользователя уже используется.'}
