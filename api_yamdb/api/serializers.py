@@ -30,7 +30,7 @@ class SignUpSerializer(serializers.ModelSerializer):
             raise ValidationError(
                 {'email': f'{username} уже зарегистрирован с другой почтой.'}
             )
-        if (
+        elif (
             not User.objects.filter(username=username).exists()
             and User.objects.filter(email=email).exists()
         ):
