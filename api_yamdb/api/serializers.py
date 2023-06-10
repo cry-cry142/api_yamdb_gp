@@ -31,7 +31,7 @@ class SignUpSerializer(serializers.ModelSerializer):
             )
         if not username_exists and email_exists:
             raise ValidationError(
-                {'email': 'Данный ардрес электронной почты уже используется.'}
+                {'email': 'Данный адрес электронной почты уже используется.'}
             )
         return data
 
