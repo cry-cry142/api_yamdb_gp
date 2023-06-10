@@ -1,6 +1,7 @@
 import datetime
 
 from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.validators import UniqueValidator
@@ -23,8 +24,9 @@ class SignUpSerializer(serializers.ModelSerializer):
     def validate(self, data):
         username = data['username']
         email = data['email']
-        username_exists = User.objects.filter(username=username).exists()
-        email_exists = User.objects.filter(email=email).exists()
+        users = User.objects.filter(Q(username=username) | Q(email=email))
+        username_exists = users.filter(username=username).exists()
+        email_exists = users.filter(email=email).exists()
         if username_exists and not email_exists:
             raise ValidationError(
                 {'email': f'{username} уже зарегистрирован с другой почтой.'}
