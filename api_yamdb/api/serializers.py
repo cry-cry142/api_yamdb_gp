@@ -23,17 +23,13 @@ class SignUpSerializer(serializers.ModelSerializer):
     def validate(self, data):
         username = data['username']
         email = data['email']
-        if (
-            User.objects.filter(username=username).exists()
-            and not User.objects.filter(email=email).exists()
-        ):
+        username_exists = User.objects.filter(username=username).exists()
+        email_exists = User.objects.filter(email=email).exists()
+        if username_exists and not email_exists:
             raise ValidationError(
                 {'email': f'{username} уже зарегистрирован с другой почтой.'}
             )
-        elif (
-            not User.objects.filter(username=username).exists()
-            and User.objects.filter(email=email).exists()
-        ):
+        if not username_exists and email_exists:
             raise ValidationError(
                 {'email': 'Данный ардрес электронной почты уже используется.'}
             )
