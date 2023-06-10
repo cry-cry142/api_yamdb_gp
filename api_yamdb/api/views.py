@@ -1,20 +1,17 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
-from django.db.utils import IntegrityError
-from django_filters.rest_framework import (
-    DjangoFilterBackend, CharFilter, FilterSet
-)
 from django.shortcuts import get_object_or_404
-
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, status, viewsets
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import ValidationError
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.pagination import PageNumberPagination
 
 from reviews.models import User, Genre, Title, Category, Review
+from .decorators import not_allowed_put_method
+from .filters import TitleFilterSet
 from .permissions import IsAdminOrReadOnly, IsResponsibleUserOrReadOnly
 from .serializers import (
     SignUpSerializer, RecieveTokenSerializer, UserSerializer,
@@ -28,13 +25,7 @@ from .serializers import (
 def sign_up(request):
     serializer = SignUpSerializer(data=request.data)
     if serializer.is_valid():
-        try:
-            user, _ = User.objects.get_or_create(**serializer.validated_data)
-        except IntegrityError as error:
-            return Response(
-                {'error': str(error)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        user, _ = User.objects.get_or_create(**serializer.validated_data)
         confirmation_code = default_token_generator.make_token(user)
         send_mail(
             subject='Yamdb registration success.',
@@ -68,43 +59,46 @@ def recieve_token(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@not_allowed_put_method
 class UserViewSet(viewsets.ModelViewSet):
-    http_method_names = [
-        'get', 'post', 'patch', 'delete', 'head', 'options', 'trace'
-    ]
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = (permissions.IsAdminUser,)
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
 
-    def get_permissions(self):
-        if self.kwargs.get('username') == 'me':
-            return (permissions.IsAuthenticated(),)
-        return (permissions.IsAdminUser(),)
-
-    def get_object(self):
-        if self.kwargs.get('username') == 'me':
-            self.kwargs['username'] = self.request.user.username
-        return super(UserViewSet, self).get_object()
-
-    def update(self, request, *args, **kwargs):
-        if self.kwargs['username'] == 'me':
-            if self.request.data.get('username') not in (
-                self.request.user.username,
-                None
-            ):
-                return Response(
-                    {'username': 'Запрещено изменять имя пользователя.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            if self.request.data.get('role'):
-                return Response(
-                    {'role': 'Запрещено устанавливать себе права доступа.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-        kwargs['partial'] = True
-        return super().update(request, *args, **kwargs)
+    @action(
+        detail=False,
+        methods=['GET', 'PATCH'],
+        permission_classes=(permissions.IsAuthenticated,)
+    )
+    def me(self, request):
+        if request.method == 'GET':
+            serializer = UserSerializer(request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        if self.request.data.get('username') not in (
+            self.request.user.username,
+            None
+        ):
+            return Response(
+                {'username': 'Запрещено изменять имя пользователя.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if self.request.data.get('role'):
+            return Response(
+                {'role': 'Запрещено устанавливать себе права доступа.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        serializer = UserSerializer(
+            request.user,
+            data=request.data,
+            partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CreateListDestroyViewSet(
@@ -113,15 +107,6 @@ class CreateListDestroyViewSet(
         mixins.DestroyModelMixin,
         viewsets.GenericViewSet):
     pass
-
-
-class TitleFilterSet(FilterSet):
-    category = CharFilter(field_name='category__slug')
-    genre = CharFilter(field_name='genre__slug')
-
-    class Meta:
-        model = Title
-        fields = ('category', 'genre', 'name', 'year')
 
 
 class CategoryViewSet(CreateListDestroyViewSet):
@@ -145,12 +130,12 @@ class GenreViewSet(CreateListDestroyViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.annotate(
-        rating=Avg('reviews__score')).order_by("name")
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilterSet
+    ordering = ('name',)
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -158,10 +143,8 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleSerializer
 
 
+@not_allowed_put_method
 class ReviewViewSet(viewsets.ModelViewSet):
-    http_method_names = [
-        'get', 'post', 'patch', 'delete', 'head', 'options', 'trace'
-    ]
     serializer_class = ReviewSerializer
     permission_classes = (IsResponsibleUserOrReadOnly,)
 
@@ -174,18 +157,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
-        if title.reviews.filter(author=self.request.user).exists():
-            raise ValidationError({'author': 'Вы уже оставляли отзыв.'})
         serializer.save(
             author=self.request.user,
             title=title
         )
 
 
+@not_allowed_put_method
 class CommentViewSet(viewsets.ModelViewSet):
-    http_method_names = [
-        'get', 'post', 'patch', 'delete', 'head', 'options', 'trace'
-    ]
     serializer_class = CommentSerializer
     permission_classes = (IsResponsibleUserOrReadOnly,)
 

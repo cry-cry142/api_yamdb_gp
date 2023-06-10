@@ -1,6 +1,7 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 
 User = get_user_model()
@@ -51,7 +52,10 @@ class Title(models.Model):
         verbose_name='Название произведения',
         max_length=256
     )
-    year = models.IntegerField(verbose_name='Год выхода')
+    year = models.PositiveSmallIntegerField(
+        verbose_name='Год выхода',
+        validators=[MaxValueValidator(timezone.now().year)]
+    )
     description = models.TextField(
         verbose_name='Описание',
         blank=True, null=True)
@@ -116,11 +120,11 @@ class Review(models.Model):
         related_name='reviews',
         verbose_name='Автор'
     )
-    score = models.IntegerField(
+    score = models.SmallIntegerField(
         verbose_name='Оценка',
         validators=[
-            MaxValueValidator(10),
-            MinValueValidator(1)
+            MaxValueValidator(10, 'Оценка не может быть больше 10.'),
+            MinValueValidator(1, 'Оценка не может быть меньше 1.')
         ]
     )
     pub_date = models.DateTimeField(
